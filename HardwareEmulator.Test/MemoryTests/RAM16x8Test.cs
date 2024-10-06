@@ -1,0 +1,46 @@
+﻿using HardwareEmulator.Lib.Factories.MemoryFactories;
+using HardwareEmulator.Lib.Factories;
+using HardwareEmulator.Lib.Memory;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
+
+namespace HardwareEmulator.Test.MemoryTests;
+public class RAM16x8Test : ScopedTest
+{
+    private readonly RAM16x8 _ram;
+
+    private readonly ITestOutputHelper _output;
+    private readonly IRelayFactory _relayFactory;
+
+    public RAM16x8Test(DependencyInjectionFixture fixture, ITestOutputHelper output) : base(fixture)
+    {
+        var ramFactory = Scope.ServiceProvider.GetRequiredService<IRAM16x8Factory>();
+
+        _ram = ramFactory.Create();
+
+        _relayFactory = Scope.ServiceProvider.GetRequiredService<IRelayFactory>();
+
+        _output = output;
+    }
+
+    [Fact]
+    public void Test()
+    {
+        _ram.Write(0b_0000, 0b_0100_0000);
+
+        _ram.Read(0b_0000).Should().Be(0b_0100_0000);
+
+        _ram.Write(0b_0001, 0b_1000_0000);
+
+        _ram.Read(0b_0000).Should().Be(0b_0100_0000);
+
+        _ram.Read(0b_0001).Should().Be(0b_1000_0000);
+
+        _ram.Write(0b_0000, 0b_1111_1111);
+
+        _ram.Read(0b_0000).Should().Be(0b_1111_1111);
+
+        _output.WriteLine($"RAM16x8 number of relays: {_relayFactory.RelayCount}");
+    }
+}
